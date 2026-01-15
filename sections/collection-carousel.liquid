@@ -1,0 +1,772 @@
+{%- liquid
+  assign slides_count = section.blocks.size
+-%}
+
+<collection-carousel
+  class="section"
+  data-section-id="{{ section.id }}"
+  data-mobile-slides="{{ section.settings.slides_per_view_mobile }}"
+  data-tablet-slides="{{ section.settings.slides_per_view_tablet }}"
+  data-desktop-slides="{{ section.settings.slides_per_view_desktop }}"
+  style="padding-top: {{ section.settings.padding_top }}px; padding-bottom: {{ section.settings.padding_bottom }}px;"
+>
+  <div class="page-width">
+    {% if section.settings.heading != blank %}
+      <div class="title-wrapper-with-link title-wrapper--self-padded-mobile">
+        <h2 class="title {{ section.settings.heading_size }}">
+          {{ section.settings.heading }}
+        </h2>
+      </div>
+    {% endif %}
+
+    {% if slides_count > 0 %}
+      <div class="swiper carousel-swiper">
+        <div class="swiper-wrapper">
+          {% for block in section.blocks %}
+            {%- liquid
+              assign slide_url = block.settings.url
+              assign slide_collection = block.settings.collection
+              assign slide_image = block.settings.image
+
+              # Use collection URL if custom URL not provided
+              if slide_url == blank and slide_collection != blank
+                assign slide_url = slide_collection.url
+              endif
+
+              # Use collection featured image if custom image not provided
+              if slide_image == blank and slide_collection != blank and slide_collection.featured_image != blank
+                assign slide_image = slide_collection.featured_image
+              endif
+            -%}
+
+            <div class="swiper-slide" {{ block.shopify_attributes }}>
+              <div class="carousel-slide">
+                {% if slide_url != blank %}
+                  <a href="{{ slide_url }}" class="carousel-slide__link">
+                {% else %}
+                  <div class="carousel-slide__link">
+                {% endif %}
+
+                {% if slide_image != blank %}
+                  <div class="carousel-slide__media media">
+                    {%- liquid
+                      assign image_height = slide_image.width | divided_by: slide_image.aspect_ratio
+                      assign sizes = '(min-width: 990px) calc((100vw - 130px) / 6), (min-width: 750px) calc((100vw - 130px) / 4), calc(100vw - 30px)'
+                    -%}
+                    {{
+                      slide_image
+                      | image_url: width: 600
+                      | image_tag:
+                        loading: 'lazy',
+                        class: 'carousel-slide__image motion-reduce',
+                        sizes: sizes,
+                        widths: '165, 360, 535, 750',
+                        height: image_height,
+                        width: slide_image.width
+                    }}
+                  </div>
+                {% else %}
+                  <div class="carousel-slide__media carousel-slide__media--placeholder media">
+                    {{ 'collection-1' | placeholder_svg_tag: 'placeholder-svg' }}
+                  </div>
+                {% endif %}
+
+                <div class="carousel-slide__info">
+                  {% if block.settings.title != blank %}
+                    <h3 class="carousel-slide__title h4">
+                      {{ block.settings.title }}
+                    </h3>
+                  {% endif %}
+
+                  {% if block.settings.description != blank %}
+                    <div class="carousel-slide__description rte">
+                      {{ block.settings.description }}
+                    </div>
+                  {% endif %}
+                </div>
+
+                {% if slide_url != blank %}
+                  </a>
+                {% else %}
+                  </div>
+                {% endif %}
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+
+        {% if slides_count > 1 %}
+          <div class="swiper-button-prev">
+            <svg aria-hidden="true" focusable="false" class="icon icon-caret" viewBox="0 0 10 6">
+              <path fill-rule="evenodd" clip-rule="evenodd" d="M9.354.646a.5.5 0 00-.708 0L5 4.293 1.354.646a.5.5 0 00-.708.708l4 4a.5.5 0 00.708 0l4-4a.5.5 0 000-.708z" fill="currentColor">
+            </svg>
+          </div>
+          <div class="swiper-button-next">
+            <svg aria-hidden="true" focusable="false" class="icon icon-caret" viewBox="0 0 10 6">
+              <path fill-rule="evenodd" clip-rule="evenodd" d="M9.354.646a.5.5 0 00-.708 0L5 4.293 1.354.646a.5.5 0 00-.708.708l4 4a.5.5 0 00.708 0l4-4a.5.5 0 000-.708z" fill="currentColor">
+            </svg>
+          </div>
+          <div class="swiper-pagination"></div>
+        {% endif %}
+      </div>
+    {% else %}
+      <div class="carousel-empty placeholder">
+        <p>Add slides from the theme editor to display the carousel</p>
+      </div>
+    {% endif %}
+  </div>
+</collection-carousel>
+
+{% style %}
+  :root {
+    --carousel-card-bg: #ffffff;
+    --carousel-text-primary: #1c1917;
+    --carousel-text-secondary: #78716c;
+    --carousel-accent: #d4af37;
+    --carousel-accent-hover: #b8960b;
+  }
+
+  collection-carousel {
+    display: block;
+    padding: 4rem 0 5rem;
+    overflow: visible;
+  }
+
+  .page-width {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 2rem;
+  }
+
+  .title-wrapper-with-link {
+    text-align: center;
+    margin-bottom: 3rem;
+  }
+
+  .title {
+    font-weight: 600;
+    letter-spacing: -0.025em;
+    color: var(--carousel-text-primary);
+    margin: 0;
+    display: inline-block;
+    padding-bottom: 1rem;
+  }
+
+  .title.h0 {
+    font-size: clamp(2rem, 5vw, 3rem);
+  }
+
+  .title.h1 {
+    font-size: clamp(1.75rem, 4vw, 2.5rem);
+  }
+
+  .title.h2 {
+    font-size: clamp(1.5rem, 3vw, 2rem);
+  }
+
+  .title::after {
+    content: '';
+    display: block;
+    width: 5rem;
+    height: 4px;
+    background: var(--carousel-accent);
+    margin: 1rem auto 0;
+    border-radius: 2px;
+  }
+
+  .carousel-swiper {
+    position: relative;
+    padding-bottom: 5rem;
+    overflow: visible;
+  }
+
+  .swiper {
+    padding-bottom: 50px !important;
+  }
+
+  .swiper-wrapper {
+    display: flex;
+  }
+
+  .swiper-slide {
+    height: auto;
+  }
+
+  .carousel-slide {
+    height: 100%;
+  }
+
+  .carousel-slide__link {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: 100%;
+    text-decoration: none;
+    color: inherit;
+    background: var(--carousel-card-bg);
+    border-radius: 1.5rem;
+    overflow: hidden;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    transition: all 400ms cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  .carousel-slide__link:hover {
+    transform: translateY(-12px);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  }
+
+  .carousel-slide__media {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    overflow: hidden;
+    background: linear-gradient(135deg, #f5f5f4 0%, #e7e5e4 100%);
+    flex-shrink: 0;
+  }
+
+  /* Override Dawn's default media padding */
+  .carousel-slide__media.media {
+    aspect-ratio: 1 / 1;
+    padding-bottom: 0 !important;
+  }
+
+  .carousel-slide__media.media::before {
+    display: none !important;
+  }
+
+  .carousel-slide__image {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 600ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .carousel-slide__link:hover .carousel-slide__image {
+    transform: scale(1.1);
+  }
+
+  .carousel-slide__media--placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .carousel-slide__media--placeholder svg {
+    width: 50%;
+    height: 50%;
+    opacity: 0.2;
+  }
+
+  /* Subtle overlay on images */
+  .carousel-slide__media::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.05) 0%, transparent 40%);
+    pointer-events: none;
+    transition: opacity 300ms ease;
+  }
+
+  .carousel-slide__link:hover .carousel-slide__media::after {
+    opacity: 0;
+  }
+
+  .carousel-slide__info {
+    padding: 1.75rem 1.25rem;
+    text-align: center;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 0.5rem;
+  }
+
+  .carousel-slide__title {
+    font-size: 1.125rem;
+    font-weight: 600;
+    letter-spacing: -0.015em;
+    color: var(--carousel-text-primary);
+    margin: 0;
+    line-height: 1.3;
+    transition: color 150ms ease;
+  }
+
+  .carousel-slide__link:hover .carousel-slide__title {
+    color: var(--carousel-accent);
+  }
+
+  .carousel-slide__description {
+    font-size: 0.9375rem;
+    color: var(--carousel-text-secondary);
+    line-height: 1.5;
+    margin: 0;
+  }
+
+  .carousel-slide__description p {
+    margin: 0;
+  }
+
+  .swiper-button-prev,
+  .swiper-button-next {
+    background: white;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    border-radius: 50%;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    transition: all 250ms ease;
+    transform: translateY(-50%);
+    width: calc(var(--swiper-navigation-size) / 44 * 45) !important;
+  }
+
+  .swiper-button-prev {
+    left: -0.5rem;
+  }
+
+  .swiper-button-next {
+    right: -0.5rem;
+  }
+
+  .swiper-button-prev::after,
+  .swiper-button-next::after {
+    display: none;
+  }
+
+  .swiper-button-prev .icon,
+  .swiper-button-next .icon {
+    width: 1.5rem;
+    height: 1.5rem;
+    color: #3b82f6;
+    transition: all 150ms ease;
+  }
+
+  .swiper-button-prev:hover,
+  .swiper-button-next:hover {
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.15), 0 4px 6px -2px rgba(0, 0, 0, 0.08);
+    transform: translateY(-50%) scale(1.05);
+  }
+
+  .swiper-button-prev:hover .icon,
+  .swiper-button-next:hover .icon {
+    color: #2563eb;
+    transform: scale(1.1);
+  }
+
+  .swiper-button-next .icon {
+    transform: rotate(-90deg);
+  }
+
+  .swiper-button-prev .icon {
+    transform: rotate(90deg);
+  }
+
+  .swiper-button-prev:hover .icon {
+    transform: rotate(90deg) scale(1.1);
+  }
+
+  .swiper-button-next:hover .icon {
+    transform: rotate(-90deg) scale(1.1);
+  }
+
+  .swiper-button-disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+    pointer-events: none;
+  }
+
+  .swiper-pagination {
+    position: absolute;
+    bottom: 1rem !important;
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0;
+    margin: 0;
+    z-index: 5;
+  }
+
+  .swiper-pagination-bullet {
+    width: 0.5rem;
+    height: 0.5rem;
+    background: rgba(0, 0, 0, 0.25);
+    opacity: 1;
+    border-radius: 50%;
+    transition: all 300ms cubic-bezier(0.34, 1.56, 0.64, 1);
+    margin: 0 !important;
+    cursor: pointer;
+  }
+
+  .swiper-pagination-bullet:hover {
+    background: rgba(0, 0, 0, 0.4);
+  }
+
+  .swiper-pagination-bullet-active {
+    background: var(--carousel-accent);
+  }
+
+  .carousel-empty {
+    text-align: center;
+    padding: 6rem 2rem;
+    border-radius: 1rem;
+    background: linear-gradient(135deg, #f5f5f4 0%, #e7e5e4 100%);
+    color: var(--carousel-text-secondary);
+  }
+
+  /* Single slide - no Swiper initialization needed */
+  .carousel-swiper.single-slide {
+    padding-bottom: 2rem;
+  }
+
+  .carousel-swiper.single-slide .swiper-wrapper {
+    justify-content: center;
+  }
+
+  @media screen and (max-width: 749px) {
+    collection-carousel {
+      padding: 3rem 0 4rem;
+    }
+
+    .page-width {
+      padding: 0 1rem;
+    }
+
+    .swiper-button-prev,
+    .swiper-button-next {
+      display: none;
+    }
+
+    .title {
+      font-size: 1.75rem;
+    }
+
+    .carousel-slide__info {
+      padding: 1.5rem 1rem;
+    }
+
+    .carousel-swiper {
+      padding-bottom: 4rem;
+    }
+
+    .swiper-pagination {
+      bottom: 0.75rem !important;
+    }
+  }
+
+  @media screen and (max-width: 989px) and (min-width: 750px) {
+    .swiper-button-prev,
+    .swiper-button-next {
+      width: 3.5rem;
+      height: 3.5rem;
+    }
+
+    .swiper-button-prev {
+      left: -0.25rem;
+    }
+
+    .swiper-button-next {
+      right: -0.25rem;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .carousel-slide__link,
+    .carousel-slide__image,
+    .swiper-button-prev,
+    .swiper-button-next,
+    .swiper-pagination-bullet {
+      transition: none;
+    }
+
+    .carousel-slide__link:hover {
+      transform: none;
+    }
+
+    .carousel-slide__link:hover .carousel-slide__image {
+      transform: none;
+    }
+  }
+
+  /* Fixed maximum width for cards */
+  .carousel-slide {
+    height: 100%;
+    max-width: 280px; /* Cards never grow beyond this */
+    margin: 0 auto; /* Center single cards */
+  }
+
+  /* When there are few slides, center them */
+  .swiper-wrapper {
+    justify-content: flex-start;
+  }
+
+  @media screen and (min-width: 990px) {
+    .swiper-slide {
+      max-width: 280px !important;
+    }
+  }
+
+  @media screen and (min-width: 750px) and (max-width: 989px) {
+    .swiper-slide {
+      max-width: 300px !important;
+    }
+  }
+
+  @media screen and (max-width: 749px) {
+    .swiper-slide {
+      max-width: 100%;
+    }
+  }
+{% endstyle %}
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css">
+<script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js" defer></script>
+
+<script>
+  if (!customElements.get('collection-carousel')) {
+    class CollectionCarousel extends HTMLElement {
+      constructor() {
+        super();
+        this.carousel = this.querySelector('.carousel-swiper');
+        this.swiperInstance = null;
+      }
+
+      connectedCallback() {
+        if (typeof Swiper !== 'undefined') {
+          this.initCarousel();
+        } else {
+          this.waitForSwiper();
+        }
+      }
+
+      waitForSwiper() {
+        const checkInterval = setInterval(() => {
+          if (typeof Swiper !== 'undefined') {
+            clearInterval(checkInterval);
+            this.initCarousel();
+          }
+        }, 100);
+
+        setTimeout(() => clearInterval(checkInterval), 5000);
+      }
+
+      initCarousel() {
+        if (!this.carousel) return;
+
+        const slideCount = this.carousel.querySelectorAll('.swiper-slide').length;
+
+        if (slideCount === 0) return;
+
+        // Don't initialize Swiper for single slide
+        if (slideCount === 1) {
+          this.carousel.classList.add('single-slide');
+          return;
+        }
+
+        const mobileSlides = parseInt(this.dataset.mobileSlides) || 1;
+        const tabletSlides = parseInt(this.dataset.tabletSlides) || 4;
+        const desktopSlides = parseInt(this.dataset.desktopSlides) || 6;
+
+        this.swiperInstance = new Swiper(this.carousel, {
+          slidesPerView: mobileSlides,
+          spaceBetween: 20,
+          loop: slideCount > desktopSlides,
+          navigation: {
+            nextEl: this.querySelector('.swiper-button-next'),
+            prevEl: this.querySelector('.swiper-button-prev'),
+          },
+          pagination: {
+            el: this.querySelector('.swiper-pagination'),
+            clickable: true,
+          },
+          breakpoints: {
+            750: {
+              slidesPerView: Math.min(tabletSlides, slideCount),
+              spaceBetween: 20,
+            },
+            990: {
+              slidesPerView: Math.min(desktopSlides, slideCount),
+              spaceBetween: 24,
+            },
+          },
+          a11y: {
+            enabled: true,
+            prevSlideMessage: 'Previous slide',
+            nextSlideMessage: 'Next slide',
+          },
+        });
+      }
+
+      disconnectedCallback() {
+        if (this.swiperInstance) {
+          this.swiperInstance.destroy(true, true);
+          this.swiperInstance = null;
+        }
+      }
+    }
+
+    customElements.define('collection-carousel', CollectionCarousel);
+  }
+</script>
+
+{% schema %}
+{
+  "name": "Collection Carousel",
+  "tag": "section",
+  "class": "section",
+  "disabled_on": {
+    "groups": ["header", "footer"]
+  },
+  "settings": [
+    {
+      "type": "inline_richtext",
+      "id": "heading",
+      "label": "Heading",
+      "default": "Shop by Collection"
+    },
+    {
+      "type": "select",
+      "id": "heading_size",
+      "options": [
+        {
+          "value": "h2",
+          "label": "Small"
+        },
+        {
+          "value": "h1",
+          "label": "Medium"
+        },
+        {
+          "value": "h0",
+          "label": "Large"
+        }
+      ],
+      "default": "h1",
+      "label": "Heading size"
+    },
+    {
+      "type": "header",
+      "content": "Carousel settings"
+    },
+    {
+      "type": "range",
+      "id": "slides_per_view_mobile",
+      "min": 1,
+      "max": 3,
+      "step": 1,
+      "label": "Slides per view (mobile)",
+      "default": 1,
+      "info": "Screens under 750px"
+    },
+    {
+      "type": "range",
+      "id": "slides_per_view_tablet",
+      "min": 2,
+      "max": 6,
+      "step": 1,
+      "label": "Slides per view (tablet)",
+      "default": 4,
+      "info": "Screens 750px - 989px"
+    },
+    {
+      "type": "range",
+      "id": "slides_per_view_desktop",
+      "min": 3,
+      "max": 8,
+      "step": 1,
+      "label": "Slides per view (desktop)",
+      "default": 6,
+      "info": "Screens 990px and above"
+    },
+    {
+      "type": "header",
+      "content": "Section padding"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "label": "Top padding",
+      "default": 36
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "label": "Bottom padding",
+      "default": 36
+    }
+  ],
+  "blocks": [
+    {
+      "type": "slide",
+      "name": "Slide",
+      "limit": 12,
+      "settings": [
+        {
+          "type": "text",
+          "id": "title",
+          "label": "Title",
+          "default": "Collection Title"
+        },
+        {
+          "type": "richtext",
+          "id": "description",
+          "label": "Description",
+          "default": "<p>Brief description of the collection</p>"
+        },
+        {
+          "type": "url",
+          "id": "url",
+          "label": "Custom URL",
+          "info": "Leave empty to use collection URL"
+        },
+        {
+          "type": "image_picker",
+          "id": "image",
+          "label": "Slide Image",
+          "info": "Leave empty to use collection featured image"
+        },
+        {
+          "type": "collection",
+          "id": "collection",
+          "label": "Collection"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Collection Carousel",
+      "blocks": [
+        {
+          "type": "slide"
+        },
+        {
+          "type": "slide"
+        },
+        {
+          "type": "slide"
+        },
+        {
+          "type": "slide"
+        },
+        {
+          "type": "slide"
+        },
+        {
+          "type": "slide"
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}
